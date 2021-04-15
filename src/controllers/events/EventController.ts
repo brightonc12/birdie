@@ -4,12 +4,17 @@ const GetEvent = require('../../application/user_cases/GetEvent')
 
 
 module.exports = (dependencies) => {
-    const {eventRepository} = dependencies.DatabaseServices
+    const {eventRepository} = dependencies
 
     const getAllEvents = (req, res, next) => {
         const GetAllEventQuery = GetAllEvents(eventRepository)
 
-        GetAllEventQuery.Execute().then((events) => {
+        console.log(req.query)
+
+        const size = parseInt(req.query.size, 10)
+        const page = parseInt(req.query.page, 10)
+
+        GetAllEventQuery.Execute(size, page).then((events) => {
             res.json(events)
         }, (err) => {
             next(err)
@@ -19,7 +24,7 @@ module.exports = (dependencies) => {
     const getEvent = (req, res, next) => {
         const GetEventQuery = GetEvent(eventRepository)
 
-        GetEventQuery.Execute(req.params.id).then((event) => {
+        GetEventQuery.Execute(+req.params.eventId).then((event) => {
             res.json(event)
         }, (err) => {
             next(err)

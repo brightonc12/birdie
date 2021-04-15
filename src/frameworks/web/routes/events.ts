@@ -7,10 +7,12 @@ const eventsRouter = (dependencies) => {
 
     const  controller = eventController(dependencies)
 
-    router.route('/')
-        .get(controller.getAllEvents)
+
     router.route('/:eventId')
         .get(controller.getEvent)
+
+    router.route('/')
+        .get(controller.getAllEvents)
 
     return router
 }

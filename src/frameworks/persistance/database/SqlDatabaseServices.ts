@@ -1,58 +1,61 @@
 const DatabaseServices = require('../../../application/contracts/DatabaseServices')
 const SqlEventRepository = require('./EventRepository')
-import mysql = require('mysql')
-
+import mysql = require('mysql2')
 
 
 class MysqlCon {
-    private static connection = null
+    private static pool = null
+
     constructor() {
     }
+
     static getConnection = async () => {
-        if (!MysqlCon.connection) {
-            const con = mysql.createConnection({
-                host     : process.env.MYSQL_HOST || 'localhost',
-                user     : process.env.MYSQL_USER || 'root',
-                password : process.env.MYSQL_PASSWORD || 'root',
-                database : process.env.MYSQL_DB || 'db'
+        if (!MysqlCon.pool) {
+            const dbPool = mysql.createPool({
+                host: process.env.MYSQL_HOST || 'localhost',
+                user: process.env.MYSQL_USER || 'root',
+                password: process.env.MYSQL_PASSWORD || 'root',
+                database: process.env.MYSQL_DB || 'db',
+                waitForConnections: true,
             })
 
-            con.connect((err) => {
-                if (err) {
-                    console.log(`Failed to connect to the database: ${err}`)
-                    throw err
-                }
+            // pool.connect((err) => {
+            //     if (err) {
+            //         console.log(`Failed to connect to the database: ${err}`)
+            //         throw err
+            //     }
+            //
+            //     console.log('Connected to the database successfully')
+            // })
+            //
+            // pool.end((err) => {
+            //     console.log('Database terminated')
+            // })
 
-                console.log('Connected to the database successfully')
-            })
-
-            con.end((err) => {
-                console.log('Database terminated')
-            })
-
-            MysqlCon.connection = con
-
-            return MysqlCon.connection
+            MysqlCon.pool = dbPool
         }
+
+        return MysqlCon.pool
     }
 }
 
 module.exports = class SqlDatabaseServices extends DatabaseServices {
+    public eventRepository
+
     constructor() {
         super()
     }
 
     async initDatabase() {
-        const con = await MysqlCon.getConnection()
-        if (!con) {
+        const pool = await MysqlCon.getConnection()
+        if (!pool) {
             throw new Error('failed to connect to the database')
         }
 
-        this.eventRepository = new SqlEventRepository(con)
+        this.eventRepository = new SqlEventRepository(pool)
 
         return this
     }
-
 
 
 }
